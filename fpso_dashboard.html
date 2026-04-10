@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FPSO Vendor Track System</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --white:       #ffffff;
+    --bg:          #f0f6ff;
+    --bg2:         #e4effd;
+    --blue-100:    #dbeafe;
+    --blue-200:    #bfdbfe;
+    --blue-300:    #93c5fd;
+    --blue-400:    #60a5fa;
+    --blue-500:    #3b82f6;
+    --blue-600:    #2563eb;
+    --blue-700:    #1d4ed8;
+    --blue-900:    #1e3a8a;
+    --navy:        #0f2554;
+    --text:        #0f172a;
+    --text2:       #334155;
+    --text3:       #64748b;
+    --border:      #cbd5e1;
+    --shadow:      0 1px 3px rgba(15,37,84,.08), 0 4px 16px rgba(15,37,84,.06);
+    --shadow-lg:   0 8px 32px rgba(15,37,84,.12);
+    --r:           12px;
+    --r-sm:        8px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── TOP HEADER ── */
+  header {
+    background: var(--navy);
+    background-image: linear-gradient(135deg, #0f2554 0%, #1e40af 60%, #1d4ed8 100%);
+    padding: 0 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 12px rgba(15,37,84,.3);
+  }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .header-logo {
+    width: 38px; height: 38px; background: var(--blue-400);
+    border-radius: 9px; display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .header-title { color: #fff; font-size: 17px; font-weight: 600; letter-spacing: -.2px; }
+  .header-sub   { color: var(--blue-300); font-size: 12px; margin-top: 1px; }
+  .header-badge {
+    background: rgba(255,255,255,.12); color: #e0edff;
+    font-size: 11.5px; font-weight: 500; padding: 4px 12px;
+    border-radius: 99px; border: 1px solid rgba(255,255,255,.18);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* ── STAT STRIP ── */
+  .stats-strip {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex; gap: 0;
+  }
+  .stat-item {
+    padding: 14px 32px 14px 0; margin-right: 32px;
+    border-right: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .stat-item:last-child { border-right: none; }
+  .stat-icon {
+    width: 36px; height: 36px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center; font-size: 17px;
+    flex-shrink: 0;
+  }
+  .stat-icon.blue  { background: var(--blue-100); }
+  .stat-icon.sky   { background: #e0f2fe; }
+  .stat-icon.teal  { background: #d1fae5; }
+  .stat-icon.amber { background: #fef9c3; }
+  .stat-val  { font-size: 22px; font-weight: 700; color: var(--navy); line-height: 1; }
+  .stat-lbl  { font-size: 11.5px; color: var(--text3); margin-top: 2px; font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
+
+  /* ── LAYOUT ── */
+  .layout { display: flex; gap: 0; min-height: calc(100vh - 112px); }
+
+  /* ── SIDEBAR FILTERS ── */
+  aside {
+    width: 280px; flex-shrink: 0;
+    background: var(--white);
+    border-right: 1px solid var(--border);
+    padding: 20px;
+    overflow-y: auto;
+    max-height: calc(100vh - 112px);
+    position: sticky; top: 112px;
+  }
+  .filter-section { margin-bottom: 24px; }
+  .filter-title {
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text3); margin-bottom: 10px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .filter-title::before { content: ''; display: block; width: 3px; height: 12px; background: var(--blue-500); border-radius: 2px; }
+
+  /* Search */
+  .search-wrap { position: relative; }
+  .search-wrap input {
+    width: 100%; padding: 9px 12px 9px 36px;
+    border: 1.5px solid var(--border); border-radius: var(--r-sm);
+    font-family: inherit; font-size: 13.5px; color: var(--text);
+    background: var(--bg); outline: none; transition: border .15s;
+  }
+  .search-wrap input:focus { border-color: var(--blue-400); background: #fff; }
+  .search-wrap .s-icon {
+    position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+    color: var(--text3); font-size: 15px; pointer-events: none;
+  }
+
+  /* Checkbox list */
+  .checkbox-list { display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow-y: auto; }
+  .checkbox-list::-webkit-scrollbar { width: 4px; }
+  .checkbox-list::-webkit-scrollbar-thumb { background: var(--blue-200); border-radius: 2px; }
+  .cb-item {
+    display: flex; align-items: center; gap: 9px;
+    padding: 6px 8px; border-radius: 7px; cursor: pointer;
+    transition: background .12s; user-select: none;
+  }
+  .cb-item:hover { background: var(--blue-100); }
+  .cb-item input[type=checkbox] { display: none; }
+  .cb-box {
+    width: 16px; height: 16px; border: 1.5px solid var(--border);
+    border-radius: 4px; flex-shrink: 0; display: flex;
+    align-items: center; justify-content: center;
+    background: #fff; transition: all .12s;
+  }
+  .cb-item.checked .cb-box {
+    background: var(--blue-500); border-color: var(--blue-500);
+  }
+  .cb-item.checked .cb-box::after { content: '✓'; color: #fff; font-size: 10px; font-weight: 700; }
+  .cb-label { font-size: 13px; color: var(--text2); flex: 1; }
+  .cb-count {
+    font-size: 11px; color: var(--text3); background: var(--bg2);
+    border-radius: 99px; padding: 1px 7px; font-family: 'DM Mono', monospace;
+  }
+  .cb-item.checked .cb-label { color: var(--blue-700); font-weight: 500; }
+
+  /* Min systems slider */
+  .range-row { display: flex; align-items: center; gap: 10px; }
+  .range-row input[type=range] {
+    flex: 1; accent-color: var(--blue-500); height: 4px; cursor: pointer;
+  }
+  .range-val {
+    font-size: 13px; font-weight: 600; color: var(--blue-700);
+    background: var(--blue-100); border-radius: 6px; padding: 2px 8px;
+    font-family: 'DM Mono', monospace; min-width: 36px; text-align: center;
+  }
+
+  /* Reset btn */
+  .reset-btn {
+    width: 100%; padding: 9px; border: 1.5px solid var(--border);
+    background: #fff; border-radius: var(--r-sm); color: var(--text2);
+    font-family: inherit; font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all .15s; margin-top: 4px;
+  }
+  .reset-btn:hover { border-color: var(--blue-400); color: var(--blue-600); background: var(--blue-100); }
+
+  /* ── MAIN CONTENT ── */
+  main { flex: 1; padding: 24px 28px; overflow: hidden; }
+
+  /* Toolbar */
+  .toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px; gap: 12px; flex-wrap: wrap;
+  }
+  .result-info { font-size: 13px; color: var(--text3); }
+  .result-info strong { color: var(--blue-700); font-weight: 700; }
+  .view-toggle { display: flex; gap: 4px; }
+  .vbtn {
+    width: 34px; height: 34px; border: 1.5px solid var(--border);
+    background: #fff; border-radius: 7px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 15px;
+    color: var(--text3); transition: all .12s;
+  }
+  .vbtn.active, .vbtn:hover { border-color: var(--blue-400); color: var(--blue-600); background: var(--blue-100); }
+  .sort-select {
+    padding: 7px 12px; border: 1.5px solid var(--border); border-radius: 7px;
+    font-family: inherit; font-size: 13px; color: var(--text2); background: #fff;
+    cursor: pointer; outline: none; transition: border .15s;
+  }
+  .sort-select:focus { border-color: var(--blue-400); }
+
+  /* Cards grid */
+  #card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+    gap: 16px;
+  }
+  #card-grid.list-view {
+    grid-template-columns: 1fr;
+  }
+
+  /* Vendor card */
+  .vendor-card {
+    background: var(--white); border-radius: var(--r);
+    border: 1.5px solid var(--border);
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+    transition: box-shadow .18s, border-color .18s, transform .18s;
+    cursor: pointer; animation: fadeUp .25s ease both;
+  }
+  .vendor-card:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: var(--blue-300);
+    transform: translateY(-2px);
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+  .card-name { font-size: 14px; font-weight: 600; color: var(--navy); line-height: 1.35; flex: 1; }
+  .card-badge {
+    flex-shrink: 0; background: var(--blue-600); color: #fff;
+    font-size: 11px; font-weight: 700; padding: 3px 9px;
+    border-radius: 99px; font-family: 'DM Mono', monospace; white-space: nowrap;
+  }
+  .card-country {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--bg2); border-radius: 6px; padding: 4px 10px;
+    font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 12px;
+  }
+  .flag { font-size: 15px; }
+
+  .systems-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--text3); margin-bottom: 8px; }
+  .systems-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .sys-tag {
+    background: var(--blue-100); color: var(--blue-700);
+    border: 1px solid var(--blue-200); border-radius: 5px;
+    padding: 3px 8px; font-size: 11.5px; font-weight: 500;
+    cursor: default; transition: background .12s;
+    position: relative;
+  }
+  .sys-tag:hover { background: var(--blue-200); }
+  .sys-tag .tooltip {
+    position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+    background: var(--navy); color: #fff; font-size: 11px; padding: 5px 9px;
+    border-radius: 6px; white-space: nowrap; pointer-events: none;
+    opacity: 0; transition: opacity .15s; z-index: 200;
+    box-shadow: 0 4px 12px rgba(0,0,0,.2);
+  }
+  .sys-tag:hover .tooltip { opacity: 1; }
+  .sys-tag .tooltip::after {
+    content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+    border: 5px solid transparent; border-top-color: var(--navy);
+  }
+
+  /* List view card override */
+  #card-grid.list-view .vendor-card { padding: 14px 20px; }
+  #card-grid.list-view .card-top { margin-bottom: 8px; }
+  #card-grid.list-view .systems-tags .sys-tag { font-size: 11px; }
+
+  /* Empty state */
+  .empty-state {
+    grid-column: 1 / -1; text-align: center; padding: 60px 20px;
+    color: var(--text3);
+  }
+  .empty-state .e-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state p { font-size: 15px; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(15,37,84,.45);
+    backdrop-filter: blur(4px); z-index: 500;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity .2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: #fff; border-radius: 16px; width: 92%; max-width: 640px;
+    max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(15,37,84,.25);
+    transform: translateY(20px); transition: transform .2s;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-header {
+    padding: 22px 24px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+    position: sticky; top: 0; background: #fff; z-index: 1;
+    border-radius: 16px 16px 0 0;
+  }
+  .modal-title { font-size: 16px; font-weight: 700; color: var(--navy); line-height: 1.35; }
+  .modal-country {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 6px;
+    background: var(--bg2); border-radius: 6px; padding: 4px 10px;
+    font-size: 12.5px; font-weight: 500; color: var(--text2);
+  }
+  .close-btn {
+    width: 32px; height: 32px; border: none; background: var(--bg);
+    border-radius: 8px; cursor: pointer; font-size: 18px; color: var(--text3);
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    transition: background .12s;
+  }
+  .close-btn:hover { background: var(--blue-100); color: var(--blue-600); }
+  .modal-body { padding: 20px 24px 24px; }
+  .modal-sys-count {
+    background: linear-gradient(135deg, var(--blue-600), var(--blue-700));
+    color: #fff; border-radius: 10px; padding: 14px 18px;
+    display: flex; align-items: center; gap: 14px; margin-bottom: 20px;
+  }
+  .modal-sys-count .big-num { font-size: 36px; font-weight: 800; font-family: 'DM Mono', monospace; }
+  .modal-sys-count .big-lbl { font-size: 13px; opacity: .85; }
+  .modal-group { margin-bottom: 18px; }
+  .modal-group-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px;
+    color: var(--text3); margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .modal-group-title .dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  .modal-sys-list { display: flex; flex-direction: column; gap: 6px; }
+  .modal-sys-row {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg); border-radius: 8px; padding: 9px 12px;
+  }
+  .modal-sys-abbr {
+    font-size: 11.5px; font-weight: 700; font-family: 'DM Mono', monospace;
+    color: var(--blue-700); background: var(--blue-100);
+    padding: 2px 7px; border-radius: 4px; min-width: 80px; text-align: center;
+    flex-shrink: 0;
+  }
+  .modal-sys-full { font-size: 13px; color: var(--text2); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--blue-200); border-radius: 3px; }
+
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    aside { width: 100%; max-height: none; position: relative; top: 0; border-right: none; border-bottom: 1px solid var(--border); }
+    header { padding: 0 16px; }
+    main { padding: 16px; }
+    .stats-strip { flex-wrap: wrap; padding: 0 16px; gap: 0; }
+    .stat-item { padding: 10px 16px 10px 0; margin-right: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-left">
+    <div class="header-logo">🛢️</div>
+    <div>
+      <div class="header-title">FPSO Vendor Track System</div>
+      <div class="header-sub">Global Supplier Intelligence Dashboard</div>
+    </div>
+  </div>
+  <div class="header-badge" id="live-count">66 Vendors · 12 Countries · 35 Systems</div>
+</header>
+
+<!-- STAT STRIP -->
+<div class="stats-strip">
+  <div class="stat-item">
+    <div class="stat-icon blue">🏢</div>
+    <div><div class="stat-val" id="s-vendors">66</div><div class="stat-lbl">Total Vendors</div></div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-icon sky">🌐</div>
+    <div><div class="stat-val" id="s-countries">12</div><div class="stat-lbl">Countries</div></div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-icon teal">⚙️</div>
+    <div><div class="stat-val" id="s-systems">35</div><div class="stat-lbl">Systems Tracked</div></div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-icon amber">⭐</div>
+    <div><div class="stat-val" id="s-top">35</div><div class="stat-lbl">Max Systems / Vendor</div></div>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside>
+  <!-- Search -->
+  <div class="filter-section">
+    <div class="filter-title">Search Vendor</div>
+    <div class="search-wrap">
+      <span class="s-icon">🔍</span>
+      <input type="text" id="search-input" placeholder="Type vendor name…"/>
+    </div>
+  </div>
+
+  <!-- Country filter -->
+  <div class="filter-section">
+    <div class="filter-title">Country</div>
+    <div class="checkbox-list" id="country-list"></div>
+  </div>
+
+  <!-- System filter -->
+  <div class="filter-section">
+    <div class="filter-title">System</div>
+    <div class="checkbox-list" id="system-list"></div>
+  </div>
+
+  <!-- Min systems -->
+  <div class="filter-section">
+    <div class="filter-title">Min. Systems Supplied</div>
+    <div class="range-row">
+      <input type="range" id="min-systems" min="1" max="35" value="1" step="1"/>
+      <div class="range-val" id="range-display">1</div>
+    </div>
+  </div>
+
+  <button class="reset-btn" onclick="resetFilters()">↺ Reset All Filters</button>
+</aside>
+
+<!-- MAIN -->
+<main>
+  <div class="toolbar">
+    <div class="result-info">Showing <strong id="shown-count">66</strong> of 66 vendors</div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <select class="sort-select" id="sort-select" onchange="applyFilters()">
+        <option value="count-desc">Most Systems First</option>
+        <option value="count-asc">Fewest Systems First</option>
+        <option value="name-asc">Name A → Z</option>
+        <option value="name-desc">Name Z → A</option>
+        <option value="country-asc">Country A → Z</option>
+      </select>
+      <div class="view-toggle">
+        <button class="vbtn active" id="btn-grid" onclick="setView('grid')" title="Grid view">⊞</button>
+        <button class="vbtn" id="btn-list" onclick="setView('list')" title="List view">☰</button>
+      </div>
+    </div>
+  </div>
+  <div id="card-grid"></div>
+</main>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modal-name"></div>
+        <div class="modal-country"><span class="flag" id="modal-flag"></span><span id="modal-country-text"></span></div>
+      </div>
+      <button class="close-btn" onclick="closeModalDirect()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-sys-count">
+        <div class="big-num" id="modal-count"></div>
+        <div><div class="big-lbl">Systems Supplied</div><div style="font-size:11px;opacity:.7;margin-top:2px;">Click any tag on the card to see details</div></div>
+      </div>
+      <div id="modal-groups"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const VENDORS = [{"name":"M K Cooling Systems Pvt. Ltd","country":"INDIA","systems":[{"abbr":"Glycol Comp","full":"Glycol Compressor"},{"abbr":"SWLP","full":"Seawater Lift Pump"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"UM","full":"Utility Module"},{"abbr":"FS","full":"Fire & Safety"}],"count":6},{"name":"TopChiller International","country":"CHINA","systems":[{"abbr":"Glycol Comp","full":"Glycol Compressor"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"UM","full":"Utility Module"}],"count":3},{"name":"STE EQUIPMENT","country":"CHINA","systems":[{"abbr":"Glycol Comp","full":"Glycol Compressor"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"FLPGC","full":"Fuel / LP Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"SC","full":"Slug Catcher"},{"abbr":"HP2-SC","full":"HP2 Slug Catcher"},{"abbr":"WI","full":"Water Injection"},{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"OSSLP","full":"Oil Storage & Surge LP"},{"abbr":"OS-HPxPWTxPWK","full":"Oil Separation HP × PWT × PWK"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"LER","full":"Local Equipment Room"},{"abbr":"FS","full":"Fire & Safety"}],"count":20},{"name":"Ergil","country":"TURKEY","systems":[{"abbr":"Glycol Comp","full":"Glycol Compressor"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"FLPGC","full":"Fuel / LP Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"SC","full":"Slug Catcher"},{"abbr":"HP2-SC","full":"HP2 Slug Catcher"},{"abbr":"WI","full":"Water Injection"},{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"OS-HPxPWTxPWK","full":"Oil Separation HP × PWT × PWK"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"LER","full":"Local Equipment Room"},{"abbr":"FS","full":"Fire & Safety"}],"count":19},{"name":"Suzhou Santy Cleaning Equipment Co., LTD","country":"CHINA","systems":[{"abbr":"WI","full":"Water Injection"},{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"}],"count":7},{"name":"Dencil Arabia Industrial Company Ltd.","country":"SAUDI ARABIA","systems":[{"abbr":"Glycol Comp","full":"Glycol Compressor"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"FLPGC","full":"Fuel / LP Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"SC","full":"Slug Catcher"},{"abbr":"HP2-SC","full":"HP2 Slug Catcher"},{"abbr":"WI","full":"Water Injection"},{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"OSSLP","full":"Oil Storage & Surge LP"},{"abbr":"OS-HPxPWTxPWK","full":"Oil Separation HP × PWT × PWK"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"LER","full":"Local Equipment Room"},{"abbr":"FS","full":"Fire & Safety"}],"count":20},{"name":"DENCIL FLUIDTEK SYSTEMS PRIVATE LIMITED","country":"INDIA","systems":[{"abbr":"Glycol Comp","full":"Glycol Compressor"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"FLPGC","full":"Fuel / LP Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"SC","full":"Slug Catcher"},{"abbr":"HP2-SC","full":"HP2 Slug Catcher"},{"abbr":"WI","full":"Water Injection"},{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"OSSLP","full":"Oil Storage & Surge LP"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"LER","full":"Local Equipment Room"},{"abbr":"FS","full":"Fire & Safety"}],"count":19},{"name":"SANY Hydrogen Energy Co., Ltd.","country":"CHINA","systems":[{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"VOC-PM","full":"VOC / Pressure Management"}],"count":5},{"name":"Shuangliang hydrogen divisions","country":"CHINA","systems":[{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"VOC-PM","full":"VOC / Pressure Management"}],"count":5},{"name":"Shanghai Shenqi Machinery Equipment Co., Ltd.","country":"CHINA","systems":[{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"SC","full":"Slug Catcher"},{"abbr":"HP2-SC","full":"HP2 Slug Catcher"},{"abbr":"WI","full":"Water Injection"},{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"OSSLP","full":"Oil Storage & Surge LP"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"LER","full":"Local Equipment Room"},{"abbr":"FS","full":"Fire & Safety"}],"count":14},{"name":"Ingersoll Rand (India) Limited","country":"INDIA","systems":[{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"FLPGC","full":"Fuel / LP Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"VOC-PM","full":"VOC / Pressure Management"}],"count":8},{"name":"Xuzhou Huayan Gas Equipment Co., Ltd.","country":"CHINA","systems":[{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"FLPGC","full":"Fuel / LP Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"FS","full":"Fire & Safety"}],"count":8},{"name":"JR Compressor (Jier New Energy Equipment)","country":"CHINA","systems":[{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"FLPGC","full":"Fuel / LP Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"LPGC-C4","full":"LPGC C4 Recovery"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"FS","full":"Fire & Safety"}],"count":9},{"name":"Shanghai Sollant Energy Saving Technology Co., Ltd.","country":"CHINA","systems":[{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"FLPGC","full":"Fuel / LP Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"FS","full":"Fire & Safety"}],"count":8},{"name":"Jiarong Technology","country":"CHINA","systems":[{"abbr":"WI","full":"Water Injection"},{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"DPUT","full":"Desanding / Produced Utilities"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"}],"count":8},{"name":"Flomek Singapore Private Limited (FSPL)","country":"SINGAPORE","systems":[{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWLP","full":"Seawater Lift Pump"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"DPUT","full":"Desanding / Produced Utilities"}],"count":6},{"name":"Matten (Singapore) Pte Ltd","country":"SINGAPORE","systems":[{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWLP","full":"Seawater Lift Pump"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"}],"count":5},{"name":"Hebei Fupeng Environmental Protection Technology Group Co., Ltd.","country":"CHINA","systems":[{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWLP","full":"Seawater Lift Pump"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"VOC-PM","full":"VOC / Pressure Management"}],"count":6},{"name":"Jiangsu Golden Gate Energy & Equipment Co., Ltd","country":"CHINA","systems":[{"abbr":"GS","full":"Gas Scrubber"},{"abbr":"Glycol Comp","full":"Glycol Compressor"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"GCM","full":"Gas Compression Module"},{"abbr":"SC","full":"Slug Catcher"},{"abbr":"HP2-SC","full":"HP2 Slug Catcher"},{"abbr":"FGC-C5","full":"FGC C5+ Recovery"},{"abbr":"LPGC-C4","full":"LPGC C4 Recovery"},{"abbr":"GC-WHRU-C1","full":"Gas Compression Waste Heat Recovery"},{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"OSSLP","full":"Oil Storage & Surge LP"},{"abbr":"OS-HPxPWTxPWK","full":"Oil Separation HP × PWT × PWK"},{"abbr":"DPUT","full":"Desanding / Produced Utilities"},{"abbr":"VOC-PM","full":"VOC / Pressure Management"},{"abbr":"FKD","full":"Flare Knockout Drum"}],"count":19},{"name":"BERG INDUSTRIES LLC.","country":"UAE","systems":[{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"FLPGC","full":"Fuel / LP Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"SC","full":"Slug Catcher"},{"abbr":"HP2-SC","full":"HP2 Slug Catcher"},{"abbr":"FGC-C5","full":"FGC C5+ Recovery"},{"abbr":"LPGC-C4","full":"LPGC C4 Recovery"},{"abbr":"WI","full":"Water Injection"},{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWLP","full":"Seawater Lift Pump"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"PG","full":"Power Generation"},{"abbr":"FS","full":"Fire & Safety"},{"abbr":"TSS","full":"Turret Support Structure"},{"abbr":"TGA","full":"Turret & Gas Anchor"},{"abbr":"RM","full":"Riser Module"}],"count":20},{"name":"PETRONASH OIL AND GAS SERVICES AND TRADING LLC","country":"QATAR","systems":[{"abbr":"Glycol Comp","full":"Glycol Compressor"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"FLPGC","full":"Fuel / LP Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"SC","full":"Slug Catcher"},{"abbr":"HP2-SC","full":"HP2 Slug Catcher"},{"abbr":"WI","full":"Water Injection"},{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"OSSLP","full":"Oil Storage & Surge LP"},{"abbr":"OS-HPxPWTxPWK","full":"Oil Separation HP × PWT × PWK"},{"abbr":"DPUT","full":"Desanding / Produced Utilities"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"LER","full":"Local Equipment Room"},{"abbr":"VOC-PM","full":"VOC / Pressure Management"},{"abbr":"FS","full":"Fire & Safety"},{"abbr":"TSS","full":"Turret Support Structure"},{"abbr":"TGA","full":"Turret & Gas Anchor"},{"abbr":"RM","full":"Riser Module"}],"count":25},{"name":"PETRONASH MANUFACTURING FACILITY (Unit II)","country":"INDIA","systems":[{"abbr":"Glycol Comp","full":"Glycol Compressor"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"FLPGC","full":"Fuel / LP Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"SC","full":"Slug Catcher"},{"abbr":"HP2-SC","full":"HP2 Slug Catcher"},{"abbr":"WI","full":"Water Injection"},{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"OSSLP","full":"Oil Storage & Surge LP"},{"abbr":"OS-HPxPWTxPWK","full":"Oil Separation HP × PWT × PWK"},{"abbr":"DPUT","full":"Desanding / Produced Utilities"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"LER","full":"Local Equipment Room"},{"abbr":"VOC-PM","full":"VOC / Pressure Management"},{"abbr":"FS","full":"Fire & Safety"},{"abbr":"TSS","full":"Turret Support Structure"},{"abbr":"TGA","full":"Turret & Gas Anchor"},{"abbr":"RM","full":"Riser Module"}],"count":25},{"name":"Al Shirawi Equipment Company LLC","country":"UAE","systems":[{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"LER","full":"Local Equipment Room"},{"abbr":"PO","full":"Production Operations"}],"count":4},{"name":"LUDY Petrochemical Equipment (Jiangsu) Co., Ltd,","country":"CHINA","systems":[{"abbr":"Glycol Comp","full":"Glycol Compressor"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"DPUT","full":"Desanding / Produced Utilities"},{"abbr":"UM","full":"Utility Module"}],"count":6},{"name":"Shenyang Blower Works Group Corporation","country":"CHINA","systems":[{"abbr":"GS","full":"Gas Scrubber"},{"abbr":"Glycol Comp","full":"Glycol Compressor"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"FLPGC","full":"Fuel / LP Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"GCM","full":"Gas Compression Module"},{"abbr":"BCT","full":"Booster Compressor Train"}],"count":9},{"name":"Anhui Huaihai Compressor Co., Ltd.","country":"CHINA","systems":[{"abbr":"GS","full":"Gas Scrubber"},{"abbr":"Glycol Comp","full":"Glycol Compressor"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"FLPGC","full":"Fuel / LP Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"GCM","full":"Gas Compression Module"},{"abbr":"BCT","full":"Booster Compressor Train"}],"count":9},{"name":"Zhangjiagang Furui CIT Co., Ltd.","country":"CHINA","systems":[{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"FLPGC","full":"Fuel / LP Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"GCM","full":"Gas Compression Module"}],"count":5},{"name":"KOREA GAS ENGINEERING (KGE)","country":"SOUTH KOREA","systems":[{"abbr":"GS","full":"Gas Scrubber"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"GCM","full":"Gas Compression Module"},{"abbr":"SC","full":"Slug Catcher"}],"count":5},{"name":"Switch Flow Sdn Bhd","country":"MALAYSIA","systems":[{"abbr":"WI","full":"Water Injection"},{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"}],"count":7},{"name":"KNM GROUP BERHAD","country":"MALAYSIA","systems":[{"abbr":"GS","full":"Gas Scrubber"},{"abbr":"Glycol Comp","full":"Glycol Compressor"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"FLPGC","full":"Fuel / LP Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"GCM","full":"Gas Compression Module"},{"abbr":"BCT","full":"Booster Compressor Train"},{"abbr":"SC","full":"Slug Catcher"},{"abbr":"GC-WHRU-C1","full":"Gas Compression Waste Heat Recovery"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"OSSLP","full":"Oil Storage & Surge LP"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"}],"count":15},{"name":"Godrej Process Equipment","country":"INDIA","systems":[{"abbr":"SC","full":"Slug Catcher"},{"abbr":"HP2-SC","full":"HP2 Slug Catcher"},{"abbr":"GC-WHRU-C1","full":"Gas Compression Waste Heat Recovery"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"DPUT","full":"Desanding / Produced Utilities"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"}],"count":8},{"name":"Thermax","country":"INDIA","systems":[{"abbr":"GC-WHRU-C1","full":"Gas Compression Waste Heat Recovery"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"LER","full":"Local Equipment Room"},{"abbr":"PG","full":"Power Generation"}],"count":8},{"name":"Samshin","country":"SOUTH KOREA","systems":[{"abbr":"GS","full":"Gas Scrubber"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"GCM","full":"Gas Compression Module"},{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"}],"count":9},{"name":"Hanwha Impact","country":"SOUTH KOREA","systems":[{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"GC-WHRU-C1","full":"Gas Compression Waste Heat Recovery"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"OSSLP","full":"Oil Storage & Surge LP"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"VOC-PM","full":"VOC / Pressure Management"},{"abbr":"PG","full":"Power Generation"},{"abbr":"PO","full":"Production Operations"}],"count":10},{"name":"Shanghai Tongke Flow Technology Co., Ltd","country":"CHINA","systems":[{"abbr":"WI","full":"Water Injection"},{"abbr":"PW","full":"Produced Water"},{"abbr":"SWLP","full":"Seawater Lift Pump"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"LER","full":"Local Equipment Room"},{"abbr":"VOC-PM","full":"VOC / Pressure Management"}],"count":9},{"name":"TSURUMI MANUFACTURING CO., LTD.","country":"JAPAN","systems":[{"abbr":"WI","full":"Water Injection"},{"abbr":"PW","full":"Produced Water"},{"abbr":"SWLP","full":"Seawater Lift Pump"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"LER","full":"Local Equipment Room"}],"count":8},{"name":"BOTOU KEMAI PUMPS CO.,LTD","country":"CHINA","systems":[{"abbr":"WI","full":"Water Injection"},{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWLP","full":"Seawater Lift Pump"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"LER","full":"Local Equipment Room"},{"abbr":"VOC-PM","full":"VOC / Pressure Management"}],"count":10},{"name":"DongHwa Pneutec Co., Ltd.","country":"SOUTH KOREA","systems":[{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"GCM","full":"Gas Compression Module"},{"abbr":"BCT","full":"Booster Compressor Train"}],"count":5},{"name":"KMG Industries Co. Pte Ltd","country":"SINGAPORE","systems":[{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"FLPGC","full":"Fuel / LP Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"GCM","full":"Gas Compression Module"},{"abbr":"BCT","full":"Booster Compressor Train"}],"count":6},{"name":"Sulzer Singapore Pte Ltd & Group","country":"SINGAPORE","systems":[{"abbr":"WI","full":"Water Injection"},{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWLP","full":"Seawater Lift Pump"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"}],"count":6},{"name":"Kawasaki Heavy Industries (Singapore) Pte. Ltd.","country":"SINGAPORE","systems":[{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"GCM","full":"Gas Compression Module"},{"abbr":"BCT","full":"Booster Compressor Train"},{"abbr":"UM","full":"Utility Module"},{"abbr":"PG","full":"Power Generation"}],"count":6},{"name":"Hitachi Industrial Products, Ltd.","country":"JAPAN","systems":[{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"GCM","full":"Gas Compression Module"},{"abbr":"WI","full":"Water Injection"},{"abbr":"SWLP","full":"Seawater Lift Pump"},{"abbr":"UM","full":"Utility Module"},{"abbr":"RM","full":"Riser Module"}],"count":7},{"name":"Bumi Armada Berhad","country":"MALAYSIA","systems":[{"abbr":"GS","full":"Gas Scrubber"},{"abbr":"Glycol Comp","full":"Glycol Compressor"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"GCM","full":"Gas Compression Module"},{"abbr":"WI","full":"Water Injection"},{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWLP","full":"Seawater Lift Pump"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"OSSLP","full":"Oil Storage & Surge LP"},{"abbr":"OS-HPxPWTxPWK","full":"Oil Separation HP × PWT × PWK"},{"abbr":"DPUT","full":"Desanding / Produced Utilities"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"LER","full":"Local Equipment Room"},{"abbr":"VOC-PM","full":"VOC / Pressure Management"},{"abbr":"PG","full":"Power Generation"},{"abbr":"FS","full":"Fire & Safety"},{"abbr":"FKD","full":"Flare Knockout Drum"},{"abbr":"TSS","full":"Turret Support Structure"},{"abbr":"TGA","full":"Turret & Gas Anchor"},{"abbr":"RM","full":"Riser Module"},{"abbr":"PO","full":"Production Operations"}],"count":27},{"name":"Trillium Flow Technologies Suzhou","country":"CHINA","systems":[{"abbr":"GS","full":"Gas Scrubber"},{"abbr":"Glycol Comp","full":"Glycol Compressor"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"GCM","full":"Gas Compression Module"},{"abbr":"WI","full":"Water Injection"},{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWLP","full":"Seawater Lift Pump"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"OSSLP","full":"Oil Storage & Surge LP"},{"abbr":"OS-HPxPWTxPWK","full":"Oil Separation HP × PWT × PWK"},{"abbr":"DPUT","full":"Desanding / Produced Utilities"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"LER","full":"Local Equipment Room"},{"abbr":"VOC-PM","full":"VOC / Pressure Management"},{"abbr":"PG","full":"Power Generation"},{"abbr":"FS","full":"Fire & Safety"},{"abbr":"FKD","full":"Flare Knockout Drum"},{"abbr":"TSS","full":"Turret Support Structure"},{"abbr":"TGA","full":"Turret & Gas Anchor"},{"abbr":"RM","full":"Riser Module"},{"abbr":"PO","full":"Production Operations"}],"count":27},{"name":"Sichuan Rongteng Automation Equipment Co., Ltd.","country":"CHINA","systems":[{"abbr":"GS","full":"Gas Scrubber"},{"abbr":"Glycol Comp","full":"Glycol Compressor"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"GCM","full":"Gas Compression Module"},{"abbr":"SC","full":"Slug Catcher"},{"abbr":"WI","full":"Water Injection"},{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWLP","full":"Seawater Lift Pump"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"OSSLP","full":"Oil Storage & Surge LP"},{"abbr":"OS-HPxPWTxPWK","full":"Oil Separation HP × PWT × PWK"},{"abbr":"DPUT","full":"Desanding / Produced Utilities"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"LER","full":"Local Equipment Room"},{"abbr":"VOC-PM","full":"VOC / Pressure Management"},{"abbr":"PG","full":"Power Generation"},{"abbr":"FS","full":"Fire & Safety"},{"abbr":"FKD","full":"Flare Knockout Drum"},{"abbr":"TSS","full":"Turret Support Structure"},{"abbr":"TGA","full":"Turret & Gas Anchor"},{"abbr":"RM","full":"Riser Module"},{"abbr":"PO","full":"Production Operations"}],"count":28},{"name":"HC Petroleum Equipment (aka HK Huichuan International Petroleum Equipment Co., Ltd.)","country":"HONG KONG","systems":[{"abbr":"GS","full":"Gas Scrubber"},{"abbr":"Glycol Comp","full":"Glycol Compressor"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"GCM","full":"Gas Compression Module"},{"abbr":"SC","full":"Slug Catcher"},{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"OSSLP","full":"Oil Storage & Surge LP"},{"abbr":"OS-HPxPWTxPWK","full":"Oil Separation HP × PWT × PWK"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"LER","full":"Local Equipment Room"},{"abbr":"PG","full":"Power Generation"},{"abbr":"FS","full":"Fire & Safety"},{"abbr":"FKD","full":"Flare Knockout Drum"}],"count":17},{"name":"Hitachi Pump Manufacturing (Wuxi) Co., Ltd.","country":"CHINA","systems":[{"abbr":"WI","full":"Water Injection"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWLP","full":"Seawater Lift Pump"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"PG","full":"Power Generation"}],"count":7},{"name":"Dongguan Suncenter Fluid Control Equipment Co., Ltd","country":"CHINA","systems":[{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"FLPGC","full":"Fuel / LP Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"WI","full":"Water Injection"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"FS","full":"Fire & Safety"},{"abbr":"FKD","full":"Flare Knockout Drum"}],"count":11},{"name":"Precision Equipments (PECPL)","country":"INDIA","systems":[{"abbr":"WI","full":"Water Injection"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"DPUT","full":"Desanding / Produced Utilities"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"PG","full":"Power Generation"},{"abbr":"FS","full":"Fire & Safety"}],"count":9},{"name":"Pressure & Process Boilers Pvt. Ltd. (PP Boilers)","country":"INDIA","systems":[{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"DPUT","full":"Desanding / Produced Utilities"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"VOC-PM","full":"VOC / Pressure Management"},{"abbr":"PG","full":"Power Generation"}],"count":6},{"name":"Beloni (Jiangsu) Pump Manufacturing Co., Ltd","country":"CHINA","systems":[{"abbr":"WI","full":"Water Injection"},{"abbr":"SWLP","full":"Seawater Lift Pump"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"}],"count":7},{"name":"V-FLO (Dalian) Machine Co., Ltd.","country":"CHINA","systems":[{"abbr":"WI","full":"Water Injection"},{"abbr":"SWLP","full":"Seawater Lift Pump"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"}],"count":7},{"name":"PetroServe International LLC","country":"UAE","systems":[{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"UM","full":"Utility Module"},{"abbr":"VOC-PM","full":"VOC / Pressure Management"},{"abbr":"FS","full":"Fire & Safety"},{"abbr":"RM","full":"Riser Module"},{"abbr":"PO","full":"Production Operations"}],"count":7},{"name":"Levare International Limited","country":"UAE","systems":[{"abbr":"GS","full":"Gas Scrubber"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"WI","full":"Water Injection"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"UM","full":"Utility Module"},{"abbr":"PG","full":"Power Generation"},{"abbr":"TSS","full":"Turret Support Structure"},{"abbr":"PO","full":"Production Operations"}],"count":8},{"name":"HBA Future Energy","country":"SINGAPORE","systems":[{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"VOC-PM","full":"VOC / Pressure Management"},{"abbr":"PG","full":"Power Generation"},{"abbr":"FS","full":"Fire & Safety"},{"abbr":"TSS","full":"Turret Support Structure"},{"abbr":"RM","full":"Riser Module"},{"abbr":"PO","full":"Production Operations"}],"count":9},{"name":"MODEC, Inc.","country":"JAPAN","systems":[{"abbr":"GS","full":"Gas Scrubber"},{"abbr":"Glycol Comp","full":"Glycol Compressor"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"FLPGC","full":"Fuel / LP Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"GCM","full":"Gas Compression Module"},{"abbr":"BCT","full":"Booster Compressor Train"},{"abbr":"SC","full":"Slug Catcher"},{"abbr":"HP2-SC","full":"HP2 Slug Catcher"},{"abbr":"FGC-C5","full":"FGC C5+ Recovery"},{"abbr":"LPGC-C4","full":"LPGC C4 Recovery"},{"abbr":"GC-WHRU-C1","full":"Gas Compression Waste Heat Recovery"},{"abbr":"WI","full":"Water Injection"},{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWLP","full":"Seawater Lift Pump"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"OSSLP","full":"Oil Storage & Surge LP"},{"abbr":"OS-HPxPWTxPWK","full":"Oil Separation HP × PWT × PWK"},{"abbr":"DPUT","full":"Desanding / Produced Utilities"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"LER","full":"Local Equipment Room"},{"abbr":"VOC-PM","full":"VOC / Pressure Management"},{"abbr":"PG","full":"Power Generation"},{"abbr":"FS","full":"Fire & Safety"},{"abbr":"FKD","full":"Flare Knockout Drum"},{"abbr":"TSS","full":"Turret Support Structure"},{"abbr":"TGA","full":"Turret & Gas Anchor"},{"abbr":"RM","full":"Riser Module"},{"abbr":"PO","full":"Production Operations"}],"count":35},{"name":"SBM Offshore","country":"SINGAPORE","systems":[{"abbr":"GS","full":"Gas Scrubber"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"WI","full":"Water Injection"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"UM","full":"Utility Module"},{"abbr":"PG","full":"Power Generation"},{"abbr":"FS","full":"Fire & Safety"},{"abbr":"TSS","full":"Turret Support Structure"},{"abbr":"RM","full":"Riser Module"},{"abbr":"PO","full":"Production Operations"}],"count":10},{"name":"Yinson Holdings Berhad","country":"MALAYSIA","systems":[{"abbr":"GS","full":"Gas Scrubber"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"WI","full":"Water Injection"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"UM","full":"Utility Module"},{"abbr":"PG","full":"Power Generation"},{"abbr":"FS","full":"Fire & Safety"},{"abbr":"TSS","full":"Turret Support Structure"},{"abbr":"RM","full":"Riser Module"},{"abbr":"PO","full":"Production Operations"}],"count":10},{"name":"BW Offshore Singapore Pte. Ltd.","country":"SINGAPORE","systems":[{"abbr":"GS","full":"Gas Scrubber"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"WI","full":"Water Injection"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"UM","full":"Utility Module"},{"abbr":"PG","full":"Power Generation"},{"abbr":"FS","full":"Fire & Safety"},{"abbr":"TSS","full":"Turret Support Structure"},{"abbr":"RM","full":"Riser Module"},{"abbr":"PO","full":"Production Operations"}],"count":10},{"name":"MISC Berhad","country":"MALAYSIA","systems":[{"abbr":"GS","full":"Gas Scrubber"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"WI","full":"Water Injection"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"UM","full":"Utility Module"},{"abbr":"PG","full":"Power Generation"},{"abbr":"FS","full":"Fire & Safety"},{"abbr":"TSS","full":"Turret Support Structure"},{"abbr":"RM","full":"Riser Module"},{"abbr":"PO","full":"Production Operations"}],"count":10},{"name":"Keppel Offshore & Marine","country":"SINGAPORE","systems":[{"abbr":"GS","full":"Gas Scrubber"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"WI","full":"Water Injection"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"UM","full":"Utility Module"},{"abbr":"PG","full":"Power Generation"},{"abbr":"FS","full":"Fire & Safety"},{"abbr":"TSS","full":"Turret Support Structure"},{"abbr":"RM","full":"Riser Module"},{"abbr":"PO","full":"Production Operations"}],"count":10},{"name":"CNOOC Limited (China National Offshore Oil Corporation)","country":"CHINA","systems":[{"abbr":"GS","full":"Gas Scrubber"},{"abbr":"Glycol Comp","full":"Glycol Compressor"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"FLPGC","full":"Fuel / LP Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"GCM","full":"Gas Compression Module"},{"abbr":"BCT","full":"Booster Compressor Train"},{"abbr":"SC","full":"Slug Catcher"},{"abbr":"HP2-SC","full":"HP2 Slug Catcher"},{"abbr":"FGC-C5","full":"FGC C5+ Recovery"},{"abbr":"LPGC-C4","full":"LPGC C4 Recovery"},{"abbr":"GC-WHRU-C1","full":"Gas Compression Waste Heat Recovery"},{"abbr":"WI","full":"Water Injection"},{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWLP","full":"Seawater Lift Pump"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"OSSLP","full":"Oil Storage & Surge LP"},{"abbr":"OS-HPxPWTxPWK","full":"Oil Separation HP × PWT × PWK"},{"abbr":"DPUT","full":"Desanding / Produced Utilities"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"LER","full":"Local Equipment Room"},{"abbr":"VOC-PM","full":"VOC / Pressure Management"},{"abbr":"PG","full":"Power Generation"},{"abbr":"FS","full":"Fire & Safety"},{"abbr":"FKD","full":"Flare Knockout Drum"},{"abbr":"TSS","full":"Turret Support Structure"},{"abbr":"TGA","full":"Turret & Gas Anchor"},{"abbr":"RM","full":"Riser Module"},{"abbr":"PO","full":"Production Operations"}],"count":35},{"name":"ExxonMobil Asia Pacific Pte. Ltd.","country":"SINGAPORE","systems":[{"abbr":"GS","full":"Gas Scrubber"},{"abbr":"Glycol Comp","full":"Glycol Compressor"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"FLPGC","full":"Fuel / LP Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"GCM","full":"Gas Compression Module"},{"abbr":"BCT","full":"Booster Compressor Train"},{"abbr":"SC","full":"Slug Catcher"},{"abbr":"HP2-SC","full":"HP2 Slug Catcher"},{"abbr":"GC-WHRU-C1","full":"Gas Compression Waste Heat Recovery"},{"abbr":"WI","full":"Water Injection"},{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWLP","full":"Seawater Lift Pump"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"OSSLP","full":"Oil Storage & Surge LP"},{"abbr":"OS-HPxPWTxPWK","full":"Oil Separation HP × PWT × PWK"},{"abbr":"DPUT","full":"Desanding / Produced Utilities"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"LER","full":"Local Equipment Room"},{"abbr":"VOC-PM","full":"VOC / Pressure Management"},{"abbr":"PG","full":"Power Generation"},{"abbr":"FS","full":"Fire & Safety"},{"abbr":"FKD","full":"Flare Knockout Drum"},{"abbr":"TSS","full":"Turret Support Structure"},{"abbr":"TGA","full":"Turret & Gas Anchor"},{"abbr":"RM","full":"Riser Module"},{"abbr":"PO","full":"Production Operations"}],"count":33},{"name":"Bluewater Services International Private Limited (Singapore subsidiary of Bluewater Energy Services B.V.)","country":"SINGAPORE","systems":[{"abbr":"GS","full":"Gas Scrubber"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"GCM","full":"Gas Compression Module"},{"abbr":"BCT","full":"Booster Compressor Train"},{"abbr":"SC","full":"Slug Catcher"},{"abbr":"WI","full":"Water Injection"},{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWLP","full":"Seawater Lift Pump"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"OSSLP","full":"Oil Storage & Surge LP"},{"abbr":"OS-HPxPWTxPWK","full":"Oil Separation HP × PWT × PWK"},{"abbr":"DPUT","full":"Desanding / Produced Utilities"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"LER","full":"Local Equipment Room"},{"abbr":"VOC-PM","full":"VOC / Pressure Management"},{"abbr":"PG","full":"Power Generation"},{"abbr":"FS","full":"Fire & Safety"},{"abbr":"FKD","full":"Flare Knockout Drum"},{"abbr":"TSS","full":"Turret Support Structure"},{"abbr":"TGA","full":"Turret & Gas Anchor"},{"abbr":"RM","full":"Riser Module"},{"abbr":"PO","full":"Production Operations"}],"count":29},{"name":"Seatrium Limited","country":"SINGAPORE","systems":[{"abbr":"GS","full":"Gas Scrubber"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"GCM","full":"Gas Compression Module"},{"abbr":"BCT","full":"Booster Compressor Train"},{"abbr":"SC","full":"Slug Catcher"},{"abbr":"WI","full":"Water Injection"},{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWLP","full":"Seawater Lift Pump"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"CPWT","full":"Compact Produced Water Treatment"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"OSSLP","full":"Oil Storage & Surge LP"},{"abbr":"OS-HPxPWTxPWK","full":"Oil Separation HP × PWT × PWK"},{"abbr":"DPUT","full":"Desanding / Produced Utilities"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"LER","full":"Local Equipment Room"},{"abbr":"VOC-PM","full":"VOC / Pressure Management"},{"abbr":"PG","full":"Power Generation"},{"abbr":"FS","full":"Fire & Safety"},{"abbr":"FKD","full":"Flare Knockout Drum"},{"abbr":"TSS","full":"Turret Support Structure"},{"abbr":"TGA","full":"Turret & Gas Anchor"},{"abbr":"RM","full":"Riser Module"},{"abbr":"PO","full":"Production Operations"}],"count":29},{"name":"PetroVietnam Technical Services Corporation (PTSC)","country":"VIETNAM","systems":[{"abbr":"GS","full":"Gas Scrubber"},{"abbr":"GD","full":"Gas Dehydration"},{"abbr":"EGC","full":"Export Gas Compressor"},{"abbr":"FGC","full":"Fuel Gas Compressor"},{"abbr":"EIGC","full":"Export Injection Gas Compressor"},{"abbr":"GCM","full":"Gas Compression Module"},{"abbr":"WI","full":"Water Injection"},{"abbr":"PW","full":"Produced Water"},{"abbr":"PWT","full":"Produced Water Treatment"},{"abbr":"SWLP","full":"Seawater Lift Pump"},{"abbr":"SWT","full":"Seawater Treatment"},{"abbr":"COS/OSM","full":"Crude Oil Separation / Offloading"},{"abbr":"OSSLP","full":"Oil Storage & Surge LP"},{"abbr":"OS-HPxPWTxPWK","full":"Oil Separation HP × PWT × PWK"},{"abbr":"DPUT","full":"Desanding / Produced Utilities"},{"abbr":"UM","full":"Utility Module"},{"abbr":"ULM","full":"Utility & Living Module"},{"abbr":"LER","full":"Local Equipment Room"},{"abbr":"VOC-PM","full":"VOC / Pressure Management"},{"abbr":"PG","full":"Power Generation"},{"abbr":"FS","full":"Fire & Safety"},{"abbr":"FKD","full":"Flare Knockout Drum"},{"abbr":"TSS","full":"Turret Support Structure"},{"abbr":"TGA","full":"Turret & Gas Anchor"},{"abbr":"RM","full":"Riser Module"},{"abbr":"PO","full":"Production Operations"}],"count":26}];
+
+const SYSTEM_GROUPS = {
+  "Compression & Treatment": ["GS","Glycol Comp","GD","EGC","FGC","FLPGC","EIGC","GCM","BCT","SC","HP2-SC","FGC-C5","LPGC-C4","GC-WHRU-C1"],
+  "Pumping & Water": ["WI","PW","PWT","SWLP","SWT","CPWT"],
+  "Oil & Separation": ["COS/OSM","OSSLP","OS-HPxPWTxPWK","DPUT"],
+  "Utility & Support": ["UM","ULM","LER","VOC-PM"],
+  "Power & Safety": ["PG","FS","FKD"],
+  "Turret & Riser": ["TSS","TGA","RM"],
+  "Operations": ["PO"]
+};
+const GROUP_COLORS = {
+  "Compression & Treatment":"#2563eb",
+  "Pumping & Water":"#0891b2",
+  "Oil & Separation":"#d97706",
+  "Utility & Support":"#7c3aed",
+  "Power & Safety":"#dc2626",
+  "Turret & Riser":"#0f766e",
+  "Operations":"#64748b"
+};
+
+const FLAGS = {CHINA:"🇨🇳",SINGAPORE:"🇸🇬",INDIA:"🇮🇳",MALAYSIA:"🇲🇾",UAE:"🇦🇪","SOUTH KOREA":"🇰🇷",JAPAN:"🇯🇵",TURKEY:"🇹🇷","SAUDI ARABIA":"🇸🇦",QATAR:"🇶🇦","HONG KONG":"🇭🇰",VIETNAM:"🇻🇳"};
+
+// State
+let selCountries = new Set(), selSystems = new Set(), minSys = 1, searchQ = '', currentView = 'grid';
+
+// Init filters
+function initFilters() {
+  const countryCounts = {};
+  const sysCounts = {};
+  VENDORS.forEach(v => {
+    countryCounts[v.country] = (countryCounts[v.country]||0)+1;
+    v.systems.forEach(s => { sysCounts[s.abbr] = (sysCounts[s.abbr]||0)+1; });
+  });
+
+  const cl = document.getElementById('country-list');
+  Object.entries(countryCounts).sort((a,b)=>b[1]-a[1]).forEach(([c,n])=>{
+    cl.innerHTML += `<label class="cb-item" data-val="${c}" onclick="toggleFilter('country','${c}',this)">
+      <input type="checkbox"/><div class="cb-box"></div>
+      <span class="cb-label">${FLAGS[c]||''} ${c}</span><span class="cb-count">${n}</span></label>`;
+  });
+
+  const sl = document.getElementById('system-list');
+  // Sort by abbr
+  Object.entries(sysCounts).sort((a,b)=>a[0].localeCompare(b[0])).forEach(([s,n])=>{
+    const full = VENDORS.flatMap(v=>v.systems).find(x=>x.abbr===s)?.full||s;
+    sl.innerHTML += `<label class="cb-item" title="${full}" data-val="${s}" onclick="toggleFilter('system','${s}',this)">
+      <input type="checkbox"/><div class="cb-box"></div>
+      <span class="cb-label">${s}</span><span class="cb-count">${n}</span></label>`;
+  });
+}
+
+function toggleFilter(type, val, el) {
+  const set = type==='country'?selCountries:selSystems;
+  if(set.has(val)){set.delete(val);el.classList.remove('checked');}
+  else{set.add(val);el.classList.add('checked');}
+  applyFilters();
+}
+
+document.getElementById('search-input').addEventListener('input', e=>{
+  searchQ = e.target.value.toLowerCase(); applyFilters();
+});
+document.getElementById('min-systems').addEventListener('input', e=>{
+  minSys = +e.target.value;
+  document.getElementById('range-display').textContent = minSys;
+  applyFilters();
+});
+
+function applyFilters() {
+  const sort = document.getElementById('sort-select').value;
+  let result = VENDORS.filter(v => {
+    if(selCountries.size && !selCountries.has(v.country)) return false;
+    if(selSystems.size && !v.systems.some(s=>selSystems.has(s.abbr))) return false;
+    if(v.count < minSys) return false;
+    if(searchQ && !v.name.toLowerCase().includes(searchQ) && !v.country.toLowerCase().includes(searchQ)) return false;
+    return true;
+  });
+  if(sort==='count-desc') result.sort((a,b)=>b.count-a.count);
+  else if(sort==='count-asc') result.sort((a,b)=>a.count-b.count);
+  else if(sort==='name-asc') result.sort((a,b)=>a.name.localeCompare(b.name));
+  else if(sort==='name-desc') result.sort((a,b)=>b.name.localeCompare(a.name));
+  else if(sort==='country-asc') result.sort((a,b)=>a.country.localeCompare(b.country));
+  renderCards(result);
+  document.getElementById('shown-count').textContent = result.length;
+  updateStats(result);
+}
+
+function updateStats(result) {
+  document.getElementById('s-vendors').textContent = result.length;
+  document.getElementById('s-countries').textContent = new Set(result.map(v=>v.country)).size;
+  const allSys = new Set(result.flatMap(v=>v.systems.map(s=>s.abbr)));
+  document.getElementById('s-systems').textContent = allSys.size;
+  document.getElementById('s-top').textContent = result.length?Math.max(...result.map(v=>v.count)):0;
+  document.getElementById('live-count').textContent = `${result.length} Vendors · ${new Set(result.map(v=>v.country)).size} Countries · ${allSys.size} Systems`;
+}
+
+function renderCards(vendors) {
+  const grid = document.getElementById('card-grid');
+  if(!vendors.length){
+    grid.innerHTML=`<div class="empty-state"><div class="e-icon">🔍</div><p>No vendors match your filters.<br>Try adjusting or resetting them.</p></div>`;
+    return;
+  }
+  grid.innerHTML = vendors.map((v,i)=>{
+    const tags = v.systems.map(s=>`<div class="sys-tag">${s.abbr}<div class="tooltip">${s.full}</div></div>`).join('');
+    return `<div class="vendor-card" style="animation-delay:${Math.min(i,20)*18}ms" onclick="openModal(${VENDORS.indexOf(v)})">
+      <div class="card-top">
+        <div class="card-name">${v.name}</div>
+        <div class="card-badge">${v.count} sys</div>
+      </div>
+      <div class="card-country"><span class="flag">${FLAGS[v.country]||'🌐'}</span>${v.country}</div>
+      <div class="systems-label">Systems Provided</div>
+      <div class="systems-tags">${tags}</div>
+    </div>`;
+  }).join('');
+}
+
+function openModal(idx) {
+  const v = VENDORS[idx];
+  document.getElementById('modal-name').textContent = v.name;
+  document.getElementById('modal-flag').textContent = FLAGS[v.country]||'🌐';
+  document.getElementById('modal-country-text').textContent = v.country;
+  document.getElementById('modal-count').textContent = v.count;
+
+  // Group systems
+  let groupsHTML = '';
+  Object.entries(SYSTEM_GROUPS).forEach(([grp,abbrs])=>{
+    const matched = v.systems.filter(s=>abbrs.includes(s.abbr));
+    if(!matched.length) return;
+    const color = GROUP_COLORS[grp];
+    groupsHTML += `<div class="modal-group">
+      <div class="modal-group-title"><div class="dot" style="background:${color}"></div>${grp}</div>
+      <div class="modal-sys-list">
+        ${matched.map(s=>`<div class="modal-sys-row">
+          <div class="modal-sys-abbr" style="color:${color};background:${color}18;border:1px solid ${color}33">${s.abbr}</div>
+          <div class="modal-sys-full">${s.full}</div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  });
+  document.getElementById('modal-groups').innerHTML = groupsHTML;
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeModal(e){
+  if(e.target===document.getElementById('modal-overlay')) closeModalDirect();
+}
+function closeModalDirect(){
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModalDirect(); });
+
+function setView(v){
+  currentView=v;
+  const grid=document.getElementById('card-grid');
+  if(v==='list'){grid.classList.add('list-view');}else{grid.classList.remove('list-view');}
+  document.getElementById('btn-grid').classList.toggle('active',v==='grid');
+  document.getElementById('btn-list').classList.toggle('active',v==='list');
+}
+
+function resetFilters(){
+  selCountries.clear(); selSystems.clear(); minSys=1; searchQ='';
+  document.getElementById('search-input').value='';
+  document.getElementById('min-systems').value=1;
+  document.getElementById('range-display').textContent=1;
+  document.querySelectorAll('.cb-item.checked').forEach(el=>el.classList.remove('checked'));
+  applyFilters();
+}
+
+initFilters();
+applyFilters();
+</script>
+</body>
+</html>
